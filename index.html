@@ -88,6 +88,22 @@
     font-family: "proxima-nova", sans-serif;
   }
 
+  .evac_order {
+    font-weight: bold;
+    /* color:#820415; */
+    text-decoration: underline;
+    text-decoration-color:#820415;
+    text-decoration-thickness: 3px;
+  }
+
+  .evac_warning {
+    font-weight: bold;
+    /* color:#fd8724; */
+    text-decoration: underline;
+    text-decoration-color:#fd8724;
+    text-decoration-thickness: 3px;
+  }
+
   .order {
     background-color: #820415;
   }
@@ -164,12 +180,14 @@
   <div id="header">
     <div class="title">SoCal fires evacuation map</div>
     <p class="description">The map below shows the current evacuation zones for fires in the Los Angeles area. Use the
-      buttons to zoom in or out and see neighborhoods and building footprints.</p>
+      buttons to zoom in or out.</p>
+      <p class="description"><span class="evac_order">Evacuation orders</span> are lawful orders to leave because of an immediate threat to life. These areas are lawfully closed to the public.</p> 
+      <p class="description"><span class="evac_warning">Evacuation warnings</span> are notices of a potential threat to life/property. Those who require additional time to evacuate should leave now.</p>
     <div class="legend">
-      <div class="warning"></div>
-      <span>Evacuation warning</span>
       <div class="order"></div>
       <span>Evacuation order</span>
+      <div class="warning"></div>
+      <span>Evacuation warning</span>
     </div>
   </div>
   <div id="map"></div>
@@ -192,7 +210,7 @@
   const map = new maplibregl.Map({
     container: "map", // The container ID for the map
     style: "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/openStreetMap.json", // Your MapTiler or MapLibre style URL
-    center: [-118.38, 34.067917], // Centered on the Palisades fire
+    center: [-118.38, 34.15], // Centered on the Palisades fire
     zoom: 8, // Dynamically set initial zoom
     maxZoom: 20,
     minZoom: 6,
