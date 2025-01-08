@@ -1,0 +1,329 @@
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+  <title>CBS News: SoCal fires evacuation map</title>
+</head>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+<script type="text/javascript" src="https://pym.nprapps.org/pym.v1.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.3.0/dist/maplibre-gl.css" />
+
+<!-- Fonts -->
+<link rel="stylesheet" href="https://use.typekit.net/rdn8fde.css" />
+<style>
+  @font-face {
+    font-family: "Publico Headline";
+    src: url("fonts/PublicoHeadline-Black.woff2") format("woff2"),
+      url("fonts/PublicoHeadline-Black.woff") format("woff");
+  }
+
+
+  body {
+    margin: 0 !important;
+  }
+
+  a {
+    text-decoration: underline;
+    text-decoration-color: #A5091E;
+    color: #858585;
+  }
+
+  a:hover {
+    cursor: pointer;
+    color: #A5091E
+  }
+
+  a#source {
+    color: #858585;
+    text-decoration: none;
+  }
+
+  #container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  #header {
+    z-index: 1;
+    max-width: 980px;
+  }
+
+  .title {
+    font-family: "Publico Headline", serif;
+    line-height: 34px;
+    font-size: 32px;
+    color: rgb(0, 0, 0);
+  }
+
+  .description {
+    font-family: "proxima-nova", sans-serif;
+    font-size: 16px;
+    line-height: 1.3;
+    max-width: 980px;
+    margin-top: 12px;
+  }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    font-family: "proxima-nova", sans-serif;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  span.legend-title {
+    font-size: 16px;
+    font-family: "proxima-nova", sans-serif;
+  }
+
+  .legend div {
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    border-radius: 2px;
+  }
+
+  .legend span {
+    margin-right: 15px;
+    font-family: "proxima-nova", sans-serif;
+  }
+
+  .order {
+    background-color: #820415;
+  }
+
+  .warning {
+    background-color: #fd8724;
+  }
+
+  #map {
+    flex-grow: 1;
+    max-height: 900px;
+    max-width: 980px;
+    margin-bottom: 12px;
+  }
+
+  button.maplibregl-ctrl-compass {
+    display: none !important;
+  }
+
+
+  /* MEDIA QUERY */
+  @media (max-width: 430px) {
+    #map {
+      max-height: 900px !important;
+    }
+
+    .description {
+      margin-bottom: 10px;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      font-family: "proxima-nova", sans-serif;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    span.legend-title {
+      font-size: 14px;
+      font-family: "proxima-nova", sans-serif;
+    }
+
+    .legend div {
+      width: 15px;
+      height: 15px;
+      margin-right: 4px;
+      border-radius: 2px;
+    }
+
+    .legend span {
+      font-family: "proxima-nova", sans-serif;
+    }
+
+    .none {
+      background-color: #cccccc;
+      /* margin-left: 10px; */
+    }
+  }
+
+  .note {
+    font-family: "proxima-nova", sans-serif;
+    font-size: 16px;
+  }
+
+  .source {
+    font-family: "proxima-nova", sans-serif;
+    color: rgb(130, 130, 130);
+    font-size: 14px;
+  }
+</style>
+
+<div id="container">
+  <div id="header">
+    <div class="title">SoCal fires evacuation map</div>
+    <p class="description">The map below shows the current evacuation zones for fires in the Los Angeles area. Use the
+      buttons to zoom in or out and see neighborhoods and building footprints.</p>
+    <div class="legend">
+      <div class="warning"></div>
+      <span>Evacuation warning</span>
+      <div class="order"></div>
+      <span>Evacuation order</span>
+    </div>
+  </div>
+  <div id="map"></div>
+  <div class="note"></div>
+  <div class="source">
+    Map: Grace Manthey, Taylor Johnston and John Kelly / CBS News •
+    Source:
+    <a href="https://www.fire.ca.gov/" target="_blank" id="source">CalFire</a>
+  </div>
+</div>
+
+<script>
+  // Check if the user is on a mobile device
+  const isMobile = window.innerWidth <= 768; // Adjust breakpoint as needed
+
+  // Set different zoom levels for mobile and desktop
+  const initialZoom = isMobile ? 12 : 13.1; // Example: Lower zoom for mobile
+
+  // Initialize the MapLibre map
+  const map = new maplibregl.Map({
+    container: "map", // The container ID for the map
+    style: "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/openStreetMap.json", // Your MapTiler or MapLibre style URL
+    center: [-118.38, 34.067917], // Centered on the Palisades fire
+    zoom: 8, // Dynamically set initial zoom
+    maxZoom: 20,
+    minZoom: 6,
+  });
+
+  // Disable scroll zoom
+  map.scrollZoom.disable();
+
+  // Add zoom and rotation controls to the map.
+  map.addControl(new maplibregl.NavigationControl(), "top-left");
+
+
+  // Function to update the description dynamically
+  // function updateDescription(acresBurned) {
+  //   const descriptionElement = document.querySelector(".description");
+  //   const formattedAcres = acresBurned.toLocaleString(); // Add comma formatting
+  //   descriptionElement.innerHTML = `The map below shows the current perimeter of the Palisades Fire in California, which has burned about <b>${formattedAcres} acres</b>. Use the buttons to zoom in or out and see neighborhoods and building footprints.`;
+  // }
+
+  map.on("load", () => {
+    const layers = map.getStyle().layers;
+    // Find the index of the first symbol layer in the map style
+    let firstSymbolId;
+    for (let i = 0; i < layers.length; i++) {
+      if (layers[i].type === "symbol") {
+        firstSymbolId = layers[i].id;
+        break;
+      }
+    }
+
+    map.addSource("shapefile", {
+      type: "geojson",
+      data: "https://raw.githubusercontent.com/cbs-news-data/cali_fires/refs/heads/main/data/latest_cali_evac.geojson", // Replace with the path to your GeoJSON file
+    });
+
+    // Add a stroke (outline) layer
+    map.addLayer(
+      {
+        id: "shapefile-layer-outline",
+        type: "line",
+        source: "shapefile",
+        paint: {
+          "line-color": [
+            "match",
+            ["get", "status"],
+            "Evacuation Order",
+            "#820415",
+            "Evacuation Warning",
+            "#fd8724",
+            "white"
+          ],
+          "line-width": 1, // Adjust stroke width as needed
+        },
+      },
+      firstSymbolId
+    ); //
+
+    map.addLayer(
+      {
+        id: "shapefile-layer",
+        type: "fill",
+        source: "shapefile",
+        paint: {
+          "fill-color": [
+            "match",
+            ["get", "status"],
+            "Evacuation Order",
+            "#820415",
+            "Evacuation Warning",
+            "#fd8724",
+            "white"
+          ],
+          "fill-opacity": 0.5,
+        },
+      },
+      firstSymbolId
+    ); // Pass firstSymbolId as the second argument
+  });
+
+  // // Fetch the GeoJSON data to extract acres_burned
+  // fetch("https://raw.githubusercontent.com/cbs-news-data/cali_fires/refs/heads/main/data/latest_cali_fires.geojson")
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     const acresBurned = Math.round(data.features[0].properties.acres_burned); // Round to nearest whole number
+  //     updateDescription(acresBurned); // Update description
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error fetching GeoJSON data:", error);
+  //   });
+
+  // Extract the timestamp from the GeoJSON data and update the note section
+  fetch("https://raw.githubusercontent.com/cbs-news-data/cali_fires/refs/heads/main/data/latest_cali_evac.geojson")
+    .then(response => response.json())
+    .then(data => {
+      const timestamp = data.features[0].properties.timestamp; // Assuming the timestamp is in the 'properties' object
+      updateNoteSection(timestamp); // Pass timestamp to the function to update the note
+    })
+    .catch(error => {
+      console.error("Error fetching GeoJSON data:", error);
+    });
+
+  // Function to update the note with timestamp
+  function updateNoteSection(timestamp) {
+    const noteElement = document.querySelector(".note");
+
+    // Convert the timestamp into a Date object
+    const date = new Date(timestamp);
+    console.log(date)
+
+    // Get the month and day
+    const options = { month: 'short', day: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-US', options); // e.g., "Jan. 8"
+
+    // Add a period after the month abbreviation if it doesn't already have one
+    const formattedDateWithPeriod = formattedDate.replace(/([A-Za-z]+)\./, "$1.");
+
+    // Get the time in 12-hour format with 'a.m.' or 'p.m.'
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // The hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes; // Add leading zero for minutes if needed
+
+    const time = `${hours}:${minutes} ${ampm}`; // e.g., "7:00 a.m."
+
+    // Update the note with the formatted date and time
+    noteElement.innerHTML = `Note: Data as of ${formattedDateWithPeriod} at ${time} PST.`;
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var pymChild = new pym.Child();
+    pymChild.sendHeight();
+  });
+</script>
